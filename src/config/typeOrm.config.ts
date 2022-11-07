@@ -9,4 +9,5 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   database: process.env.DB_NAME || 'image_service_app',
   autoLoadEntities: true,
   synchronize: true,
+  // dropSchema: true
 };

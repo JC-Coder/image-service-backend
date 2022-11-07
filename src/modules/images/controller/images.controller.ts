@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImagesService } from '../service/images.service';
 import { diskStorage } from 'multer';
@@ -32,14 +32,20 @@ export class ImagesController {
         return await this.imagesService.upload(file, user);
     }
 
+    // get all images 
+    @Get('all')
+    async getAllImages(){
+      return await this.imagesService.getAllImages();
+    }
+
     // get user images 
     @Get('/all/:userId')
-    async getAll(@Param('userId', ParseIntPipe) userId: number){
-        return await this.imagesService.getAll(userId);
+    async getAllUserImages(@Param('userId', ParseIntPipe) userId: number){
+        return await this.imagesService.getAllUserImages(userId);
     }
 
     // get image by private path
-    @Get('user/:privatePath')
+    @Get('private/:privatePath')
     @UseGuards(JwtAuthGuard)
     async getImage(@Res() res: Response, @Param('privatePath') privatePath: any){
       try{
@@ -53,6 +59,16 @@ export class ImagesController {
       
     }
 
+    // delete image 
+    @Delete(':privatePath')
+    @UseGuards(JwtAuthGuard)
+    async deleteImage(@Param('privatePath') path: string, @CurrentUser() user: User ){
+      try{
+        return await this.imagesService.deleteImage(path, user);
+      } catch(e){
+        throw e;
+      }
+    }
  
 
 }

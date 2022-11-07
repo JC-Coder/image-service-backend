@@ -30,9 +30,9 @@ export class Image {
     @Column()
     fileType: string;
 
-    @ManyToOne(() => User, (user) => user.images)
+    @ManyToOne(() => User, (user) => user.images, {onDelete: 'CASCADE'})
     user: User;
 
     @Column()
-    userId: number;
+    ownerId: number;
 }
