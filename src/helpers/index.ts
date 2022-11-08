@@ -1,1 +1,1 @@
-export * from './app.helper';
+export * from 'src/helpers/app.helper';

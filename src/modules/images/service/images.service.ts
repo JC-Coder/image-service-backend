@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { extname } from 'path';
+import { AppUtils } from 'src/helpers/app.helper';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Image } from '../entities/image.entity';
-import { AppUtils } from 'src/helpers';
 
 @Injectable()
 export class ImagesService {
@@ -130,6 +130,25 @@ export class ImagesService {
         await this.userRepository.save(user);
         
         return await this.imagesRepository.delete(image.id);
+    }
+
+
+    // generate image public path 
+    async generatePublicPath(id: number): Promise<Image>{
+        let image = await this.imagesRepository.findOne({
+            where: {id: id}
+        })
+
+        if(!image){
+            throw new NotFoundException('image not found');
+        }
+
+        if(image.publicPath) throw new BadRequestException('Public path already exists for this image');
+
+        let publicPath = Array(5).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('')+id;
+        image.publicPath = publicPath;
+
+        return await this.imagesRepository.save(image);
     }
 
 

@@ -44,6 +44,13 @@ export class ImagesController {
         return await this.imagesService.getAllUserImages(userId);
     }
 
+
+    // generate image public path
+    @Post(':id')
+    async generatePublicPath(@Param('id', ParseIntPipe) id: number){
+      return await this.imagesService.generatePublicPath(id);
+    }
+
     // get image by private path
     @Get('private/:privatePath')
     @UseGuards(JwtAuthGuard)
