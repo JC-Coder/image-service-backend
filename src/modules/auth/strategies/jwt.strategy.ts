@@ -18,8 +18,9 @@ export class JwtStrategy extends PassportStrategy(Strategy){
 
     async validate(payload: any){
         let user = await this.userRepository.findOne({
-            where: {username: payload.username}
-        })
+            where: {username: payload.username},
+            relations: ['images']
+        }) 
         delete user.password;
 
         return user;

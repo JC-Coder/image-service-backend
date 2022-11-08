@@ -132,6 +132,9 @@ export class ImagesService {
         fs.unlink(`./uploads/images/${image.name}` ,(err) => {
             if(err) throw err;
         })
+        user.totalFiles -= 1;
+        await this.userRepository.save(user);
+        
         return await this.imagesRepository.delete(image.id);
     }
 

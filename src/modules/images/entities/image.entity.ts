@@ -31,7 +31,7 @@ export class Image {
     fileType: string;
 
     @ManyToOne(() => User, (user) => user.images, {onDelete: 'CASCADE'})
-    user: User;
+    owner: User;
 
     @Column()
     ownerId: number;

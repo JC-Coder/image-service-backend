@@ -34,7 +34,7 @@ export class User {
   @Column({ default: 0})
   totalFiles: number;
 
-  @OneToMany(() => Image, (image) => image.user, {eager: true})
+  @OneToMany(() => Image, (image) => image.owner, {eager: true})
   images: Image[];
 
 }
