@@ -68,6 +68,8 @@ export class UserService {
       await this.imagesService.deleteImageById(item.id, user);
     })
 
+    await this.userRepository.delete(id);
+
     return {message: "user deleted successfully"};
   }
 

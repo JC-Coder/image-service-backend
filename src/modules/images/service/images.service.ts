@@ -4,7 +4,7 @@ import { extname } from 'path';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Image } from '../entities/image.entity';
-import * as fs from 'fs';
+import { AppUtils } from 'src/helpers';
 
 @Injectable()
 export class ImagesService {
@@ -22,9 +22,10 @@ export class ImagesService {
          // check if user is owner 
         if(image.ownerId != user.id) throw new UnauthorizedException();
 
-        fs.unlink(`./uploads/images/${image.name}` ,(err) => {
-            if(err) throw err;
-        })
+        AppUtils.deleteImageFile(image.name);
+        user.totalFiles -= 1;
+        await this.userRepository.save(user);
+
         return await this.imagesRepository.delete(image.id);
     }
 
@@ -59,21 +60,16 @@ export class ImagesService {
             image.privatePath = await this.generatePrivatePath(user.id);
             image.ownerId = user.id;
 
-
-            // update user total image count 
-            let userFromDb = await this.userRepository.findOne({
-                where: { id: user.id }
-            })
-
-
             // check if user reached max limit 
-            if (userFromDb.totalFiles >= userFromDb.maximumFiles) {
+            if (user.totalFiles >= user.maximumFiles) {
+                AppUtils.deleteImageFile(image.name);
+                
                 throw new BadRequestException('max file limit reached, delete old files to add new one or you upgrade to a premium account');
 
             } else {
 
-                userFromDb.totalFiles += 1;
-                await this.userRepository.save(userFromDb);
+                user.totalFiles += 1;
+                await this.userRepository.save(user);
             }
 
 
@@ -84,7 +80,7 @@ export class ImagesService {
                 message: "File uploaded successfully"
             }
         } catch (e) {
-            throw new BadRequestException(e);
+            throw e;
 
         }
 
@@ -129,9 +125,7 @@ export class ImagesService {
          // check if user is owner 
         if(image.ownerId != user.id) throw new UnauthorizedException();
 
-        fs.unlink(`./uploads/images/${image.name}` ,(err) => {
-            if(err) throw err;
-        })
+        AppUtils.deleteImageFile(image.name);
         user.totalFiles -= 1;
         await this.userRepository.save(user);
         
