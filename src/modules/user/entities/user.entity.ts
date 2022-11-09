@@ -10,17 +10,23 @@ export class User {
   @Column({ nullable: true})
   fullname: string;
 
-  @Column()
+  @Column({ nullable: true })
   username: string;
 
   @Column({unique: true})
   email: string;
 
-  @Column()
+  @Column({ nullable: true})
   password: string;
 
   @Column({default: true})
   isActive: boolean;
+
+  @Column({ default: false })
+  isRegisteredWithGoogle: boolean;
+
+  @Column({ nullable: true })
+  googleId: string;
 
   @Column({ type: 'enum', enum: UserType , enumName: 'UserType' , default: UserType.USER })
   userType: UserType;
