@@ -6,6 +6,7 @@ import { User } from 'src/modules/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Image } from '../entities/image.entity';
 import { nanoid } from 'nanoid';
+import { Validator } from 'src/validators/image.validator';
 
 @Injectable()
 export class ImagesService {
@@ -41,6 +42,19 @@ export class ImagesService {
     // upload new file
     async upload(file: Express.Multer.File, user: User) {
         try {
+            //check file type 
+            if(!extname(file.originalname).match(Validator.Regex)){
+                AppUtils.deleteImageFile(file.filename);
+                throw new BadRequestException('image should be of type png , jpg, jpeg');
+            }
+
+            // check file size 
+            if(file.size > Validator.MaxSize){
+                AppUtils.deleteImageFile(file.filename);
+                throw new BadRequestException('image size should not be more than 5mb ');
+            }
+
+
             let image = new Image();
 
             image.name = file.filename;
