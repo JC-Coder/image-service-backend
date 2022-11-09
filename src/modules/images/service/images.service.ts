@@ -5,6 +5,7 @@ import { AppUtils } from 'src/helpers/app.helper';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Image } from '../entities/image.entity';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class ImagesService {
@@ -36,17 +37,6 @@ export class ImagesService {
         })
     }
 
-    // generate private path for image 
-    async generatePrivatePath(id: number) {
-        let rand = Array(18).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('')+id;
-
-        if(await this.findByPrivatePath(rand)){
-            throw new BadRequestException('error occured try again later');
-        }
-
-        return rand;
-    }
-
 
     // upload new file
     async upload(file: Express.Multer.File, user: User) {
@@ -57,7 +47,7 @@ export class ImagesService {
             image.fileType = extname(file.originalname);
             image.mimeType = file.mimetype;
             image.sizeInBytes = file.size;
-            image.privatePath = await this.generatePrivatePath(user.id);
+            image.privatePath = nanoid();
             image.ownerId = user.id;
 
             // check if user reached max limit 
@@ -114,6 +104,17 @@ export class ImagesService {
         return result.name;
     }
 
+        // get single image by public path 
+        async getPublicImage(path: string) {
+            let result = await this.imagesRepository.findOne({
+                where: { publicPath: path }
+            });
+    
+            if (!result) throw new NotFoundException('image with path not found ');
+    
+            return result.name;
+        }
+
 
     // delete image 
     async deleteImage(path: string, user: User){
@@ -145,9 +146,7 @@ export class ImagesService {
 
         if(image.publicPath) throw new BadRequestException('Public path already exists for this image');
 
-        let publicPath = Array(5).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('')+id;
-        image.publicPath = publicPath;
-
+        image.publicPath = nanoid(6) + image.id;
         return await this.imagesRepository.save(image);
     }
 
