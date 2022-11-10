@@ -43,7 +43,7 @@ export class ImagesService {
     async upload(file: Express.Multer.File, user: User) {
         try {
             //check file type 
-            if(!extname(file.originalname).match(Validator.Regex)){
+            if(!file.filename.match(Validator.Regex)){
                 AppUtils.deleteImageFile(file.filename);
                 throw new BadRequestException('image should be of type png , jpg, jpeg');
             }

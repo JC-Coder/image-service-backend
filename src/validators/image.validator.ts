@@ -1,4 +1,4 @@
 export const Validator = {
-    Regex: /^\w+.(jpg|png|jpeg)$/,
+    Regex: /^\w+.(png|jpeg|jpg)$/,
     MaxSize: 5000000
 }
