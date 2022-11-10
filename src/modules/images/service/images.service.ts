@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { extname } from 'path';
+import { AppUtils } from 'src/helpers/app.helper';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Image } from '../entities/image.entity';
-import * as fs from 'fs';
+import { nanoid } from 'nanoid';
+import { Validator } from 'src/validators/image.validator';
 
 @Injectable()
 export class ImagesService {
@@ -22,9 +24,10 @@ export class ImagesService {
          // check if user is owner 
         if(image.ownerId != user.id) throw new UnauthorizedException();
 
-        fs.unlink(`./uploads/images/${image.name}` ,(err) => {
-            if(err) throw err;
-        })
+        AppUtils.deleteImageFile(image.name);
+        user.totalFiles -= 1;
+        await this.userRepository.save(user);
+
         return await this.imagesRepository.delete(image.id);
     }
 
@@ -35,45 +38,42 @@ export class ImagesService {
         })
     }
 
-    // generate private path for image 
-    async generatePrivatePath(id: number) {
-        let rand = Array(18).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('')+id;
-
-        if(await this.findByPrivatePath(rand)){
-            throw new BadRequestException('error occured try again later');
-        }
-
-        return rand;
-    }
-
 
     // upload new file
     async upload(file: Express.Multer.File, user: User) {
         try {
+            //check file type 
+            if(!file.filename.match(Validator.Regex)){
+                AppUtils.deleteImageFile(file.filename);
+                throw new BadRequestException('image should be of type png , jpg, jpeg');
+            }
+
+            // check file size 
+            if(file.size > Validator.MaxSize){
+                AppUtils.deleteImageFile(file.filename);
+                throw new BadRequestException('image size should not be more than 5mb ');
+            }
+
+
             let image = new Image();
 
             image.name = file.filename;
             image.fileType = extname(file.originalname);
             image.mimeType = file.mimetype;
             image.sizeInBytes = file.size;
-            image.privatePath = await this.generatePrivatePath(user.id);
+            image.privatePath = nanoid();
             image.ownerId = user.id;
 
-
-            // update user total image count 
-            let userFromDb = await this.userRepository.findOne({
-                where: { id: user.id }
-            })
-
-
             // check if user reached max limit 
-            if (userFromDb.totalFiles >= userFromDb.maximumFiles) {
+            if (user.totalFiles >= user.maximumFiles) {
+                AppUtils.deleteImageFile(image.name);
+                
                 throw new BadRequestException('max file limit reached, delete old files to add new one or you upgrade to a premium account');
 
             } else {
 
-                userFromDb.totalFiles += 1;
-                await this.userRepository.save(userFromDb);
+                user.totalFiles += 1;
+                await this.userRepository.save(user);
             }
 
 
@@ -84,7 +84,7 @@ export class ImagesService {
                 message: "File uploaded successfully"
             }
         } catch (e) {
-            throw new BadRequestException(e);
+            throw e;
 
         }
 
@@ -118,6 +118,17 @@ export class ImagesService {
         return result.name;
     }
 
+        // get single image by public path 
+        async getPublicImage(path: string) {
+            let result = await this.imagesRepository.findOne({
+                where: { publicPath: path }
+            });
+    
+            if (!result) throw new NotFoundException('image with path not found ');
+    
+            return result.name;
+        }
+
 
     // delete image 
     async deleteImage(path: string, user: User){
@@ -129,10 +140,28 @@ export class ImagesService {
          // check if user is owner 
         if(image.ownerId != user.id) throw new UnauthorizedException();
 
-        fs.unlink(`./uploads/images/${image.name}` ,(err) => {
-            if(err) throw err;
-        })
+        AppUtils.deleteImageFile(image.name);
+        user.totalFiles -= 1;
+        await this.userRepository.save(user);
+        
         return await this.imagesRepository.delete(image.id);
+    }
+
+
+    // generate image public path 
+    async generatePublicPath(id: number): Promise<Image>{
+        let image = await this.imagesRepository.findOne({
+            where: {id: id}
+        })
+
+        if(!image){
+            throw new NotFoundException('image not found');
+        }
+
+        if(image.publicPath) throw new BadRequestException('Public path already exists for this image');
+
+        image.publicPath = nanoid(6) + image.id;
+        return await this.imagesRepository.save(image);
     }
 
 

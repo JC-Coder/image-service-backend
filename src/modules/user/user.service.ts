@@ -36,7 +36,7 @@ export class UserService {
   }
 
   // update user profile 
-  async updateProfile(id, payload) {
+  async updateProfile(id: number, payload: any) {
     try {
       if (Object.keys(payload).length <= 0) throw new BadRequestException('update input cannot be empty');
 
@@ -67,6 +67,8 @@ export class UserService {
     userImages.forEach(async (item) => {
       await this.imagesService.deleteImageById(item.id, user);
     })
+
+    await this.userRepository.delete(id);
 
     return {message: "user deleted successfully"};
   }

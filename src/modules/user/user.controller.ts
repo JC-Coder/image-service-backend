@@ -1,9 +1,8 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { UserIsUserGuard } from '../auth/guards/userIsUser.guard';
 import { AuthService } from '../auth/services/auth.service';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
@@ -26,6 +25,7 @@ export class UserController {
     return await this.userService.findAll()
   }
 
+  // get single user by id
   @Get(':id')
   async find(@Param('id', ParseIntPipe) id: number){
     return await this.userService.findUserWithImages(id);
