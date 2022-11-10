@@ -9,16 +9,21 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleController } from './controllers/google.controller';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GoogleService } from './services/google.service';
+import { EmailModule } from '../email/email.module';
+import { confirmPasswordToken } from './entities/confirm-password.entity';
+import { verifyAccountEmailService } from './services/confirmPassword.service';
+import { UserService } from '../user/user.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, confirmPasswordToken]),
     JwtModule.register({
       secret: Env.JWT_SECRET,
       signOptions: { expiresIn: '2h'}
     }),
-  ],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, GoogleService],
+    EmailModule
+   ],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, GoogleService, verifyAccountEmailService],
   exports: [AuthService],
   controllers: [AuthController, GoogleController]
 })

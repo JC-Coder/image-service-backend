@@ -8,22 +8,10 @@ config();
 export class EmailController {
     constructor(private mailService: MailerService){}
 
-    @Get('plain-text-email')
-    async plainTextEmail(@Query('toemail') toemail){
-        await this.mailService.sendMail({
-            to: toemail,
-            from: process.env.SMTP_USER,
-            subject: 'Simple Plain Text ',
-            text: 'Welcome to nestjs email demo'
-        })
-
-        return 'success';
-    }
-
 
     @Post('html-email')
     async postHtmlEmail(@Body() payload){
-        await this.mailService.sendMail({
+        let result = await this.mailService.sendMail({
             to: payload.toemail,
             from: process.env.SMTP_USER,
             subject: payload.subject,
@@ -33,6 +21,6 @@ export class EmailController {
             }
         });
 
-        return "success";
+        return result;
     }
 }

@@ -36,7 +36,7 @@ export class UserService {
   }
 
   // update user profile 
-  async updateProfile(id, payload) {
+  async updateProfile(id: number, payload: any) {
     try {
       if (Object.keys(payload).length <= 0) throw new BadRequestException('update input cannot be empty');
 

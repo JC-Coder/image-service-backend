@@ -19,8 +19,8 @@ export class User {
   @Column({ nullable: true})
   password: string;
 
-  @Column({default: true})
-  isActive: boolean;
+  @Column({default: false})
+  isVerified: boolean;
 
   @Column({ default: false })
   isRegisteredWithGoogle: boolean;

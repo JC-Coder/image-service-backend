@@ -46,10 +46,9 @@ export class GoogleService {
             throw new ForbiddenException( "User already exists, but Google account was not connected to user's account" );
         } else {
             let newUser = new User();
-            console.log(payload);
 
             newUser.email = payload.user.email,
-            newUser.isActive = true,
+            newUser.isVerified = true,
             newUser.googleId = payload.user.googleId,
             newUser.isRegisteredWithGoogle = true,
             newUser.userType = UserType.USER
